@@ -1,19 +1,35 @@
+version: '3.8'
+
 services:
   nats-server:
     image: nats:latest
     ports:
       - "8222:8222"
 
+# The hot reloading is not working
+
   client-gateway:
     build: ./client-gateway
     ports:
       - ${CLIENT_GATEWAY_PORT}:${CLIENT_GATEWAY_PORT}
-    volumes:
-      - ./client-gateway/src:/usr/src/app/src
+#    volumes:
+#      - ./client-gateway/src:/usr/src/app/src
     command: npm run start:dev
     environment:
       - PORT=${CLIENT_GATEWAY_PORT}
       - NATS_SERVERS=nats://nats-server:4222
+    develop:
+      watch:
+        - action: sync
+          path: ./client-gateway/src
+          target: /usr/src/app/src
+          ignore:
+            - node_modules
+            - .git
+            - .idea
+            - .vscode
+            - dist
+
 
   products-ms:
     build: ./products-ms
